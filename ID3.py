@@ -27,6 +27,11 @@ class ID3DecisionTreeClassifier :
         self.val = 0
 
 
+        #Root of the tree
+        self.root = 0
+        self.entropy = 0
+
+
 
 
 
@@ -40,10 +45,6 @@ class ID3DecisionTreeClassifier :
 
         node = {'id': self.__nodeCounter, 'value': None, 'label': None, 'attribute': None, 'entropy': None, 'samples': None,
                          'classCounts': None, 'nodes': None}
-
-
-
-
 
 
         self.__nodeCounter += 1
@@ -134,6 +135,7 @@ class ID3DecisionTreeClassifier :
                 entr_samp *= sum(list(count_samp.values())) / len(data)
                 #Add entropy to entropy of attribute
                 attr_entr[attr] += entr_samp
+                self.entropy = attr_entr[attr]
 
             attr_entr[attr] = totentr - attr_entr[attr] #Information gain from attribute
 
@@ -156,22 +158,29 @@ class ID3DecisionTreeClassifier :
 
         root = self.new_ID3_node()
         root.update({'label': None, 'attribute': None, 'entropy': None, 'samples': len(target),
-                         'classCounts': Counter(target).most_common(), 'nodes': None })
+                         'classCounts': Counter(target).most_common(), 'nodes': [] })
+
+
 
 
 
         #If samples is empty, add leaf node with label = most common value in samples
         if len(target) == 0:
             root.update({'label': self.mostc})
+            root.update({'entropy': 0})
+
             self.add_node_to_graph(root)
+            self.root = root
             return root
 
         # If all targets are same return the node (leaf)
         if target.count(target[0]) == len(target):
             mostcommon = Counter(target).most_common()
             root.update({'label': mostcommon[0][0]})
+            root.update({'entropy': 0})
             root.update({'classCounts': mostcommon})
             self.add_node_to_graph(root)
+            self.root = root
             return root
 
         if len(attributes) == 0:
@@ -179,14 +188,14 @@ class ID3DecisionTreeClassifier :
             root.update({'label':mostcommon[0][0]})
             root.update({'classCounts': mostcommon})
             self.add_node_to_graph(root)
+            self.root = root
             return root
 
         splitattribute = self.find_split_attr()
+        root.update({'entropy': self.entropy})
         newattributes = attributes.copy()
         newattributes.pop(splitattribute)
         root.update({'attribute': splitattribute})
-
-
 
         #Length of data
         l = len(data)
@@ -218,20 +227,38 @@ class ID3DecisionTreeClassifier :
         for n in range(nbr):
             child = self.fit(datasplit[n],targetsplit[n],newattributes,classes)
             val = attributes[splitattribute][n]
-            root.update({'Nodes': child['id']})
+            root['nodes'].append(child)
             child.update({'value':val})
             self.add_node_to_graph(child,root['id'])
+        #self.add_node_to_graph(root)
+        self.root = root
         return root
 
-    def predict(self, data, tree) :
-
+    def predict(self, data, attributes) :
         predicted = list()
-        root = self.fit(self.data,self.target,self.attributes,self.classes)
 
+        root = self.root
+        attributes = attributes
 
+        #For each data input
+        for data in data:
+            root = self.root
+            #Stop when there are no children
+            while(root.get('nodes') != []):
 
+                #What attribute are we checking
+                for i,attr in enumerate(attributes):
 
+                    if root.get('attribute') == attr:
+                        #print(attr)
+                        #Checking datapoint for attribute in data
+                        attributeindex = i
+                        datavalue = data[i]
 
-
-        # fill in something more sensible here... root should become the output of the recursive tree creation
+                        for childs in root.get('nodes'):
+                            if childs.get('value') == datavalue:
+                                #print('CHILD VALUE')
+                                #print(datavalue)
+                                root = childs
+            predicted.append(root.get('label'))
         return predicted
