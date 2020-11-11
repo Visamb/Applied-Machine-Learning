@@ -145,6 +145,15 @@ class ID3DecisionTreeClassifier :
 
         return best_attr #Returns best attribute as string
 
+    def get_entropy(self, count_tar, classes):
+        totentr = 0
+        for c in classes:
+            count_tar[c] = 0
+            if int(count_tar[c]) != 0:
+                totentr += -int(count_tar[c]) / sum(list(count_tar.values())) * math.log(
+                    int(count_tar[c]) / sum(list((count_tar.values()))), 2)
+        return totentr
+
     # the entry point for the recursive ID3-algorithm, you need to fill in the calls to your recursive implementation
     def fit(self, data, target, attributes, classes):
         """Recursive implementation of the ID3-algorithm"""
@@ -157,7 +166,7 @@ class ID3DecisionTreeClassifier :
 
 
         root = self.new_ID3_node()
-        root.update({'label': None, 'attribute': None, 'entropy': None, 'samples': len(target),
+        root.update({'label': None, 'attribute': None, 'entropy': self.get_entropy(dict(Counter(target)), classes), 'samples': len(target),
                          'classCounts': Counter(target).most_common(), 'nodes': [] })
 
 

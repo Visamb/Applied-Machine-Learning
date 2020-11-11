@@ -7,7 +7,7 @@ import ID3
 from collections import OrderedDict
 from sklearn import tree, metrics, datasets
 
-def returndigits ():
+def returndigits (modifieddata = True):
     """Formating of the digit dataset for classification algorithm.
     :return attributes, data, classes, target, testdata and testtarget"""
 
@@ -24,18 +24,25 @@ def returndigits ():
     new_X_train = []
     new_X_test = []
 
-    for pic in X_train:
-        pic_list = []
-        for pixel in pic:
-            if pixel < 5.0:
-                pic_list.append('dark')
-            elif pixel > 10.0:
-                pic_list.append('light')
-            else:
-                pic_list.append('grey')
-        new_X_train.append(pic_list)
+    if modifieddata == False:
+
+        for pic in X_train:
+            pic_list = []
+            for pixel in pic:
+                    pic_list.append(pixel)
+            new_X_train.append(tuple(pic_list))
+        digitdata = new_X_train
 
         for pic in X_test:
+            pic_list = []
+            for pixel in pic:
+                    pic_list.append(pixel)
+            new_X_test.append(tuple(pic_list))
+        digitdata2 = new_X_test
+
+    if modifieddata == True:
+
+        for pic in X_train:
             pic_list = []
             for pixel in pic:
                 if pixel < 5.0:
@@ -44,19 +51,30 @@ def returndigits ():
                     pic_list.append('light')
                 else:
                     pic_list.append('grey')
-            new_X_test.append(pic_list)
+            new_X_train.append(pic_list)
 
-    #Corresponds to data
-    digitdata = []
-    for i in range(len(X_train)):
-        new_X_train[i] = tuple(new_X_train[i])
-        digitdata.append(new_X_train[i])
+            for pic in X_test:
+                pic_list = []
+                for pixel in pic:
+                    if pixel < 5.0:
+                        pic_list.append('dark')
+                    elif pixel > 10.0:
+                        pic_list.append('light')
+                    else:
+                        pic_list.append('grey')
+                new_X_test.append(pic_list)
 
-    #Corresponds to testdata
-    digitdata2 = []
-    for i in range(len(X_test)):
-        new_X_test[i] = tuple(new_X_test[i])
-        digitdata2.append(new_X_test[i])
+        #Corresponds to data
+        digitdata = []
+        for i in range(len(X_train)):
+            new_X_train[i] = tuple(new_X_train[i])
+            digitdata.append(new_X_train[i])
+
+        #Corresponds to testdata
+        digitdata2 = []
+        for i in range(len(X_test)):
+            new_X_test[i] = tuple(new_X_test[i])
+            digitdata2.append(new_X_test[i])
 
     #Corresponds to classes
     digitsclasses = tuple(digits.target_names)
@@ -69,10 +87,17 @@ def returndigits ():
     digittarget2 = tuple(y_test)
 
     names = digits.feature_names
-    dict = OrderedDict({})
-    for name in names:
-        dict[name] = ['light','grey','dark']
-    digitattributes = dict
+    if modifieddata == True:
+        dict = OrderedDict({})
+        for name in names:
+            dict[name] = ['light','grey','dark']
+        digitattributes = dict
+    if modifieddata == False:
+        dict = OrderedDict({})
+        for name in names:
+            dict[name] = [0, 1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
+        digitattributes = dict
+
 
     return digitattributes, digitsclasses, digitdata, digittarget,digitdata2,digittarget2
 
@@ -90,9 +115,9 @@ def toytree():
     print(score)
     return
 
-def digittree():
+def digittree(modifieddata = True):
     """Classification of digits using ID3-Classification tree"""
-    attributes, classes, data, target,data2,target2 = returndigits()
+    attributes, classes, data, target,data2,target2 = returndigits(modifieddata = modifieddata)
     id3 = ID3.ID3DecisionTreeClassifier()
     myTree = id3.fit(data, target, attributes, classes)
     print(myTree)
@@ -109,10 +134,9 @@ def sklearntree():
     tree = Part1.Part1()
     tree.fit()
 
-
 def main():
 
-  digittree()
+  digittree(modifieddata = True)
   #toytree()
   #sklearntree()
 
