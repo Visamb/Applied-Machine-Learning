@@ -1,21 +1,16 @@
-from Part1 import*
+import Part1
 from numpy import*
 from sklearn.tree import DecisionTreeClassifier,plot_tree
 import graphviz as g
 import ToyData as td
 import ID3
-import ToyData as td
-import ID3
-from sklearn import datasets
 from collections import OrderedDict
-
-import numpy as np
-from sklearn import tree, metrics, datasets
-
-import numpy as np
 from sklearn import tree, metrics, datasets
 
 def returndigits ():
+    """Formating of the digit dataset for classification algorithm.
+    :return attributes, data, classes, target, testdata and testtarget"""
+
     # Load and split digits data set
     digits = datasets.load_digits()
 
@@ -26,7 +21,6 @@ def returndigits ():
     y_test = digits.target[num_split:]  # test labels(y-values)
 
     # Changing values from pixel strength to strings
-
     new_X_train = []
     new_X_test = []
 
@@ -78,48 +72,49 @@ def returndigits ():
     dict = OrderedDict({})
     for name in names:
         dict[name] = ['light','grey','dark']
-    print(dict)
     digitattributes = dict
-
 
     return digitattributes, digitsclasses, digitdata, digittarget,digitdata2,digittarget2
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-def main():
-
-    #attributes, classes, data, target, data2, target2 = td.ToyData().get_data()
-    attributes, classes, data, target,data2,target2 = returndigits()
-
+def toytree():
+    """Classification of toys using ID3-Classification tree"""
+    attributes, classes, data, target, data2, target2 = td.ToyData().get_data()
     id3 = ID3.ID3DecisionTreeClassifier()
     myTree = id3.fit(data, target, attributes, classes)
     print(myTree)
     plot = id3.make_dot_data()
     plot.render("testTree")
-    #print('TESTDATA:')
-    #print(data2)
-
     predicted = id3.predict(data2, attributes)
-    print('PREDICTION')
-    print(predicted)
-    print(target2)
-    print(type(predicted))
-    print(type(target2))
-
-    score = metrics.classification_report(list(target2),list(predicted))
+    score = metrics.classification_report(list(target2), list(predicted))
     print(metrics.confusion_matrix(list(target2), predicted))
     print(score)
+    return
+
+def digittree():
+    """Classification of digits using ID3-Classification tree"""
+    attributes, classes, data, target,data2,target2 = returndigits()
+    id3 = ID3.ID3DecisionTreeClassifier()
+    myTree = id3.fit(data, target, attributes, classes)
+    print(myTree)
+    plot = id3.make_dot_data()
+    plot.render("testTree")
+    predicted = id3.predict(data2, attributes)
+    score = metrics.classification_report(list(target2), list(predicted))
+    print(metrics.confusion_matrix(list(target2), predicted))
+    print(score)
+    return
+
+def sklearntree():
+    """Classification of digits using sklearn"""
+    tree = Part1.Part1()
+    tree.fit()
+
+
+def main():
+
+  digittree()
+  #toytree()
+  #sklearntree()
 
 
 
