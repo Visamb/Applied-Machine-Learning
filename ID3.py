@@ -23,6 +23,10 @@ class ID3DecisionTreeClassifier :
         self.classes = 0
         self.target = 0
         self.data = 0
+        self.mostc = 0
+        self.val = 0
+
+
 
 
 
@@ -141,6 +145,7 @@ class ID3DecisionTreeClassifier :
 
     # the entry point for the recursive ID3-algorithm, you need to fill in the calls to your recursive implementation
     def fit(self, data, target, attributes, classes):
+        """Recursive implementation of the ID3-algorithm"""
 
         #Add to self
         self.attributes = attributes
@@ -148,20 +153,22 @@ class ID3DecisionTreeClassifier :
         self.target = target
         self.classes = classes
 
-        root = self.new_ID3_node()  # Find first node
-        root.update({'value': '-','label': None, 'attribute': None, 'entropy': None, 'samples': len(target),
+
+        root = self.new_ID3_node()
+        root.update({'label': None, 'attribute': None, 'entropy': None, 'samples': len(target),
                          'classCounts': Counter(target).most_common(), 'nodes': None })
 
-        self.add_node_to_graph(root)
+
+
+        #If samples is empty, add leaf node with label = most common value in samples
         if len(target) == 0:
+            root.update({'label': self.mostc})
             self.add_node_to_graph(root)
             return root
-
 
         # If all targets are same return the node (leaf)
         if target.count(target[0]) == len(target):
             mostcommon = Counter(target).most_common()
-
             root.update({'label': mostcommon[0][0]})
             root.update({'classCounts': mostcommon})
             self.add_node_to_graph(root)
@@ -177,6 +184,8 @@ class ID3DecisionTreeClassifier :
         splitattribute = self.find_split_attr()
         newattributes = attributes.copy()
         newattributes.pop(splitattribute)
+        root.update({'attribute': splitattribute})
+
 
 
         #Length of data
@@ -203,14 +212,26 @@ class ID3DecisionTreeClassifier :
             datasplit.append(templist)
             targetsplit.append(temptarget)
 
+        mostcommon = Counter(target).most_common()
+        self.mostc = mostcommon[0][0]
+        self.add_node_to_graph(root)
         for n in range(nbr):
             child = self.fit(datasplit[n],targetsplit[n],newattributes,classes)
-            self.add_node_to_graph(child,root['id'])
+            val = attributes[splitattribute][n]
             root.update({'Nodes': child['id']})
+            child.update({'value':val})
+            self.add_node_to_graph(child,root['id'])
         return root
 
     def predict(self, data, tree) :
+
         predicted = list()
+        root = self.fit(self.data,self.target,self.attributes,self.classes)
+
+
+
+
+
 
         # fill in something more sensible here... root should become the output of the recursive tree creation
         return predicted
